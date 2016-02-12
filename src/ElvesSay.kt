@@ -9,7 +9,11 @@
 fun main(args: Array<String>) {
     val seed = "1321131112"
     var mutableSeed = seed
-    repeat(40, { mutableSeed = describe(mutableSeed); println(mutableSeed.length)})
+    val times = 40
+    val ms = kotlin.system.measureTimeMillis {
+        repeat(times, { mutableSeed = describe(mutableSeed); println(mutableSeed.length) })
+    }
+    println("Patter $seed repeated $times times: $ms")
 }
 
 
