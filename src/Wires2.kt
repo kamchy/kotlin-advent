@@ -6,22 +6,27 @@ fun log(s: String) {
 }
 fun main(args: Array<String>) {
     val s = Store()
-    val lines = """
-    NOT 4 -> c
-    b OR d -> a
-    8 SHIFTL 1 -> d
-    1 -> b
-    """.split("\n").filter { it.isNotBlank() }
 
     val realLines = File("input-wires").readLines()
+
     realLines.forEach {
         parse( it, s)
     }
-    for (i in setOf("a", "b", "c")) {
-        val value = eval(Arg.Ident(Name.Of(i)), s)
-        println("ident: ${i}, value: ${value}.")
-    }
+    val value = eval(Arg.Ident(Name.Of("a")), s)
+    println("Wire a has value $value")
+
+
+    s.setValue(Name.Of("b"), value)
+    s.cleanValuesWithExpr()
+
+    val newValue: Int = eval(Arg.Ident(Name.Of("a")), s)
+    println("Wire a has now value $newValue")
+
+
+
+
 }
+
 
 fun parse(line: String, s: Store) {
     fun isOper(t: String): Boolean = t in setOf("OR", "AND", "NOT", "LSHIFT", "RSHIFT")
@@ -200,31 +205,47 @@ fun eval(e: Expr, s: Store): Int {
     return result;
 }
 
+fun eval2(e: Expr, s: Store): Int {
+    val result: Int = when(e) {
+        is Expr.UnaryOp -> e.f(eval2(e.input, s))
+        is Expr.BinaryOp -> e.f(eval2(e.first, s), eval2(e.second, s))
+        else -> throw Exception("Not supported")
+    }
+    return result;
+}
+
+
 class Store {
-    private val m: MutableMap<Name, Expr> = HashMap<Name, Expr>()
-    private val q: MutableMap<Name, Int> = HashMap<Name, Int>()
+    private val nameToExpr: MutableMap<Name, Expr> = HashMap()
+    private val nameToValue: MutableMap<Name, Int> = HashMap()
 
     fun getExpr(s: Name) : Expr  {
-        log("Get expr for ${s}: ${m.get(s)}")
-        if (m.containsKey(s)) {
-           return m.get(s)!!
+        log("Get expr for $s: ${nameToExpr[s]}")
+        if (nameToExpr.containsKey(s)) {
+           return nameToExpr[s]!!
         } else {
             throw Exception("Cannot find expression for ${s}")
         }
     }
     fun setValue(s: Name, v: Int) {
         log("Adding value to store: ${s} = ${v}")
-        q.put(s, v)
+        nameToValue.put(s, v)
     }
 
-
-
-    fun getValue(n: Name): Int? = q.get(n)
+    fun getValue(n: Name): Int? = nameToValue.get(n)
 
     fun addExpr(s: Name, e: Expr) {
-        m.put(s, e)
-        log("(${m.containsKey(s)} - Adding ${e} -> ${s}, store:\n" +
-                m.entries.joinToString (transform = { e -> "${e.key} - ${e.value}"}, separator = "\n"))
+        nameToExpr.put(s, e)
+        log("(${nameToExpr.containsKey(s)} - Adding ${e} -> ${s}, store:\n" +
+                nameToExpr.entries.joinToString (transform = { e -> "${e.key} - ${e.value}"}, separator = "\n"))
+    }
+
+    fun cleanValuesWithExpr() {
+        val namesHavingExpr = nameToValue.filterKeys { it in nameToExpr.keys }.map { it.key }
+        println("Map: $nameToValue")
+        println("Cleaning ${namesHavingExpr}}")
+        namesHavingExpr.forEach { nameToValue.remove(it) }
+        println("Map: $nameToValue")
     }
 }
 fun eval(a: Arg, store: Store): Int =
@@ -243,3 +264,19 @@ fun eval(a: Arg, store: Store): Int =
         is Arg.Value -> a.v
     }
 
+
+fun eval2(a: Arg, store: Store): Int =
+        when (a) {
+            is Arg.Ident -> {
+                val e = store.getExpr(a.n)
+                if (e != null) {
+                    val value = eval2(e, store)
+                    store.setValue(a.n, value)
+                    value
+                } else {
+                    store.getValue(a.n) ?: throw Exception("failed at ${a.n}" )
+                }
+
+            }
+            is Arg.Value -> a.v
+        }

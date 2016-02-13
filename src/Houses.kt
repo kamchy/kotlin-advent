@@ -3,8 +3,14 @@ import java.io.File
 
 fun main(args: Array<String>) {
     val line = File("input-houses").readLines().first().toLowerCase()
-    val (locs, loc) = line.fold(Pair(setOf(Pair(0, 0)), Pair(0, 0)), ::updateSetWith)
-    println("Locs: ${locs}, current: ${loc}, visited houses: ${locs.size}")
+    //val line =  "^v^v^v^v^v"
+    val santaLine = line.filterIndexed { i, c -> i % 2 == 0 }
+    val roboLine = line.filterIndexed { i, c -> i % 2 != 0}
+    val (slocs, sloc) = santaLine.fold(Pair(setOf(Pair(0, 0)), Pair(0, 0)), ::updateSetWith)
+    val (rlocs, rloc) = roboLine.fold(Pair(setOf(Pair(0, 0)), Pair(0, 0)), ::updateSetWith)
+
+    val locs = slocs.union(rlocs)
+    println("Size = ${locs.size}")
 
 }
 

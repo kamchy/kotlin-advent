@@ -6,10 +6,16 @@ val samples = listOf("toggle 753,664 through 970,926",
         "turn on 141,242 through 932,871")
 
 enum class Operation {ON, OFF, TOGGLE}
-fun Operation.getFun(): (Boolean) -> Boolean = when (this) {
-    Operation.OFF -> { x -> false}
-    Operation.ON -> { x -> true }
-    Operation.TOGGLE -> { x -> !x }
+object Strategy {
+    val on: (Int)->Int = { x -> x + 1}
+    val off: (Int)->Int = { x -> if (x > 0) x - 1 else 0}
+    val toggle: (Int)->Int = { x -> x + 2}
+}
+
+fun Operation.getFun(): (Int) -> Int = when (this) {
+    Operation.OFF -> Strategy.off
+    Operation.ON -> Strategy.on
+    Operation.TOGGLE -> Strategy.toggle
 }
 data class Square(val from: Pair<Int, Int>, val to: Pair<Int, Int>, val op: Operation)
 
@@ -50,10 +56,10 @@ fun mkints(pair: Pair<String?, String?>): Pair<Int, Int> {
 }
 
 class LightBoard(val w :Int, val h:Int) {
-    val lights = Array<BooleanArray>(w, {i -> BooleanArray(h, { j -> false})})
+    val lights = Array<IntArray>(w, {i -> IntArray(h, { j -> 0})})
     override fun toString(): String {
         return lights.joinToString(separator = "\n", transform =
-          { it.joinToString(separator = " ", transform = {b -> if (b) "1" else "0"}) } )
+          { it.joinToString(separator = " ", transform = {b -> b.toString()}) } )
     }
     fun nrOn() = lights.fold(0, {acc, arr -> acc + nrOnInRow(arr)})
     fun doCommand(s: Square) {
@@ -68,8 +74,8 @@ class LightBoard(val w :Int, val h:Int) {
         }
     }
 
-    private fun oper(f: (Boolean) -> Boolean, x: Int, y: Int) {lights[y][x] = f(lights[y][x])}
-    private fun nrOnInRow(arr: BooleanArray): Int = arr.fold(0, {acc, bval -> acc + if (bval) 1 else 0})
+    private fun oper(f: (Int) -> Int, x: Int, y: Int) {lights[y][x] = f(lights[y][x])}
+    private fun nrOnInRow(arr: IntArray): Int = arr.fold(0, {acc, bval -> acc + bval})
 
     fun print() {
         println("\n\n${this}\nOn: ${this.nrOn()}")
