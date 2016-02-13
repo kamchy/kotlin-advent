@@ -13,7 +13,6 @@ fun isCoin(value: Int): Boolean = has5lz(potentialCoinString(value))
 
 
 val prefix = "yzbqklnj"
-val md5Prefix="00000"
 
 val md = MessageDigest.getInstance("MD5")
 fun calcMD5(s : String): ByteArray {

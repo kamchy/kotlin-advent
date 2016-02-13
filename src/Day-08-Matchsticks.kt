@@ -15,7 +15,9 @@ fun main(args: Array<String>) {
     val reals = File("input-escapes").readLines()
 
     val res = reals.fold(0, { acc, s -> acc + calcCounts(s).diff()})
-    println(res)
+    val enc = reals.fold(0, { acc, s -> acc + encodedToOrigLen(s).diff() })
+    // not 13895
+    println("Original: $res, encoded ${enc}")
 }
 
 fun Pair<Int, Int>.diff() = this.first - this.second
@@ -64,3 +66,12 @@ fun inMemCount(s: String): Int {
 }
 
 fun calcCounts(s: String) : Pair<Int, Int> = (reprCount(s) to inMemCount(s))
+fun encodedToOrigLen(s: String) = (reprCount(encoded(s)) to reprCount(s))
+
+fun encoded(s: String): String = s.map {
+    when (it) {
+        '"' -> "\\\""
+        '\\' -> "\\\\"
+        else -> it.toString()
+    }
+}.joinToString()

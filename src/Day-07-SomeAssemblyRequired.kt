@@ -16,7 +16,7 @@ fun main(args: Array<String>) {
     println("Wire a has value $value")
 
 
-    s.setValue(Name.Of("b"), value)
+    s.addExpr(Name.Of("b"), Expr.UnaryOp.Nop(Arg.Value(value)))
     s.cleanValuesWithExpr()
 
     val newValue: Int = eval(Arg.Ident(Name.Of("a")), s)
@@ -205,15 +205,6 @@ fun eval(e: Expr, s: Store): Int {
     return result;
 }
 
-fun eval2(e: Expr, s: Store): Int {
-    val result: Int = when(e) {
-        is Expr.UnaryOp -> e.f(eval2(e.input, s))
-        is Expr.BinaryOp -> e.f(eval2(e.first, s), eval2(e.second, s))
-        else -> throw Exception("Not supported")
-    }
-    return result;
-}
-
 
 class Store {
     private val nameToExpr: MutableMap<Name, Expr> = HashMap()
@@ -242,10 +233,7 @@ class Store {
 
     fun cleanValuesWithExpr() {
         val namesHavingExpr = nameToValue.filterKeys { it in nameToExpr.keys }.map { it.key }
-        println("Map: $nameToValue")
-        println("Cleaning ${namesHavingExpr}}")
         namesHavingExpr.forEach { nameToValue.remove(it) }
-        println("Map: $nameToValue")
     }
 }
 fun eval(a: Arg, store: Store): Int =
@@ -264,19 +252,3 @@ fun eval(a: Arg, store: Store): Int =
         is Arg.Value -> a.v
     }
 
-
-fun eval2(a: Arg, store: Store): Int =
-        when (a) {
-            is Arg.Ident -> {
-                val e = store.getExpr(a.n)
-                if (e != null) {
-                    val value = eval2(e, store)
-                    store.setValue(a.n, value)
-                    value
-                } else {
-                    store.getValue(a.n) ?: throw Exception("failed at ${a.n}" )
-                }
-
-            }
-            is Arg.Value -> a.v
-        }
