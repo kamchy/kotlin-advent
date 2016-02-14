@@ -30,19 +30,21 @@ fun simpleNextPass(pass: String): String {
     return "end"
 }
 
-interface MyIterator<T> {
+interface Beterator<T> {
     fun get(): T
     fun next(): Unit
 }
 
-class LetterIterator(val from: Char, val letters : String): MyIterator<Char> {
+class LetterIterator(val from: Char, val letters: String) : Beterator<Char> {
     var idx = letters.indexOfFirst { it == from }
     override fun get(): Char = if (letters.indices.contains(idx)) {letters[idx]} else {throw InvalidStateException("")}
     override fun next() {
         idx = (idx + 1)
     }
 }
-class PingingIterator<P, Q>(vararg val iterators: MyIterator<P>, val f: (List<P>) -> Q): MyIterator<Q> {
+
+
+class PingingIterator<P, Q>(vararg val iterators: Beterator<P>, val f: (List<P>) -> Q) : Beterator<Q> {
     override fun get(): Q = f(iterators.map { it.get() })
 
     override fun next() {
@@ -67,7 +69,7 @@ fun stringIterator (s: String, letters: String): MyIterator<String> {
 }
 */
 
-fun <T> MyIterator<T>.iterator() : Iterator<T>  {
+fun <T> Beterator<T>.iterator(): Iterator<T> {
   class Internal : Iterator<T> {
       override fun hasNext(): Boolean {
           return this@iterator.get() != null
