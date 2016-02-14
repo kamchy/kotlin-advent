@@ -1,3 +1,4 @@
+import org.testng.annotations.Test
 import java.io.File
 import java.io.StringReader
 
@@ -74,4 +75,5 @@ fun encoded(s: String): String = s.map {
         '\\' -> "\\\\"
         else -> it.toString()
     }
-}.joinToString()
+}.joinToString(prefix = "\"", postfix = "\"", separator = "")
+

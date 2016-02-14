@@ -1,3 +1,5 @@
+import java.util.concurrent.ThreadPoolExecutor
+
 /**
  *"+reated by karma on 06.02.16.
  * 1321131112
@@ -15,7 +17,6 @@ fun main(args: Array<String>) {
     }
     println("Patter $seed repeated $times times: $ms")
 }
-
 
 fun describe(s: String): String {
     fun update(res: String, cnt: Int, ch: Char): String {
