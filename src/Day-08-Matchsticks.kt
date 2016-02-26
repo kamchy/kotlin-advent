@@ -1,4 +1,3 @@
-import org.testng.annotations.Test
 import java.io.File
 import java.io.StringReader
 

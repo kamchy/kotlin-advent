@@ -1,5 +1,3 @@
-import org.testng.Assert
-import org.testng.annotations.Test
 
 /**
  * Created by karma on 14.02.16.
@@ -11,10 +9,10 @@ class JU {
             (""" "" """ to """ "\"\"" """),
             (""" "abc" """ to """ "\"abc\"" """))
 
-    @Test
+
     fun test() {
         for ((idx, case) in valueToEncoded.mapIndexed { i: Int, pair: Pair<String, String> -> (i to pair) }) {
-            Assert.assertEquals(encoded(case.first.trim()), case.second.trim())
+            assert(encoded(case.first.trim())== case.second.trim())
         }
     }
 }
