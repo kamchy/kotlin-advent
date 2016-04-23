@@ -1,7 +1,5 @@
 package Day13
 
-import java.util.*
-
 
 class SitInfo(val from: String, val to: String, val value: Int) {
     companion object Static {
@@ -21,78 +19,44 @@ class SitInfo(val from: String, val to: String, val value: Int) {
     }
 }
 
-class TableGraph(val infos: List<SitInfo>) {
-    val namesList = infos.flatMapTo(mutableSetOf(), { it -> listOf(it.from, it.to) }).toList()
-    val priorityQueue = PriorityQueue<Node>()
-    val nodes = mkMap(infos)
-
-    private fun mkNode(s: String): Node = Node(s, namesList.mapTo(mutableMapOf(), (it to 0)))
-
-private fun mkMap(infos: List<SitInfo>): MutableMap<String, Node> {
-        val mm = mutableMapOf<String, Node>()
-        infos.forEach {
-            val n1 = mm.getOrPut(it.from, ::mkNode(it.from)})
-            val n2 = mm.getOrPut(it.to, ::mkNode(it.to))
-            n1.value[it.to] = it.value
-
-        }
-
-        return mm
-    }
-
-    val setNodesNotInTree = nodes.values.toMutableSet()
-    val finalNodes = mutableListOf<Node>()
-
-    fun calculate(): List<Node> {
-        val node = nodes[namesList.first()]!!
-        addToFinalNodesAndUpdatePrioQ(node)
-
-        while (finalNodes.size < namesList.size) {
-            val smallest = priorityQueue.remove()
-            if (smallest != null) {
-                addToFinalNodesAndUpdatePrioQ(smallest)
-            }
-        }
-
-        return listOf();
-    }
-
-    /**
-     * Post: node is in final nodes list and prioq contains
-     * all nodes that are achievable from final nodes list
-     * */
-    fun addToFinalNodesAndUpdatePrioQ(node: Node) {
-        setNodesNotInTree.remove(node)
-        finalNodes.add(node)
-        val finalSet = finalNodes.toSet()
-        val candidates = setNodesNotInTree.filter { (it.connectedNodes() - finalSet).isNotEmpty() }
-        priorityQueue.addAll(candidates)
-    }
-
-}
 
 fun main(s: Array<String>) {
-    val res = Day13KnightsOfDinnerTable.javaClass.getResourceAsStream("input-sitting-arrange")
-    val infos = res.bufferedReader().readLines()
-            .fold(listOf<SitInfo>(), { li, st -> li + SitInfo.from(st) })
+    val origFile = "input-sitting-arrange"
+    val testFile = "input-test"
+    val res = Day13.SitInfo.javaClass.getResourceAsStream(origFile)
+    val infos = res.bufferedReader().readLines().fold(listOf<SitInfo>(), { li, st -> li + SitInfo.from(st) })
+    val people: Set<String> = infos.fold(setOf(), { s, i -> s.plus(i.from) })
+    val nameToIndex = people.mapIndexedNotNull  { i, s -> (s to i) }.toMap()
+    val indexToName = people.mapIndexedNotNull  { i, s -> (i to s) }.toMap()
+    val g = Graph(people.size)
 
-    val gr = TableGraph(infos)
-    gr.calculate().forEach { print(it) }
-
-
-}
-
-
-class Node(val name: String, val values: MutableMap<String, Int>) {
-    val connected = mutableSetOf<Node>();
-    fun connectedNodes(): Set<Node> = connected;
-    fun addConnected(n: Node) = connected.add(n)
-}
-
-object Day13KnightsOfDinnerTable {
-    fun calculate(infos: List<SitInfo>): String {
-        return "no response yet"
+    fun edgeFrom(s: SitInfo): Edge {
+        val idxFrom: Int? = nameToIndex[s.from]
+        val idxTo: Int? = nameToIndex[s.to]
+        if (idxFrom == null || idxTo == null) {
+            throw IllegalArgumentException();
+        }
+        return Edge(Math.min(idxFrom, idxTo), Math.max(idxFrom, idxTo), s.value)
     }
+
+    val edgeList = infos
+            .map { edgeFrom(it) }
+            .groupBy { e -> (e.v1 to e.v2) }
+            .mapValues { me -> me.value.sumBy { it.weight } }
+            .map { Edge (it.key.first, it.key.second, it.value) }
+
+    edgeList.forEach { g.addEdge(it) }
+    println(infos.joinToString (separator = "\n"))
+    println(edgeList.map {
+        ((indexToName[it.v1] to indexToName[it.v2]) to it.weight)
+    }.joinToString( separator = "\n") )
+    val (t, v) = MaxSpanTreeF(g)
+    val f = t.first()
+    val l = t.last()
+    println ("tree: ${t.map { e -> ((indexToName[e.v1] to indexToName[e.v2]) to e.weight) }}, val: ${v}")
 }
+
+
+
 
 
