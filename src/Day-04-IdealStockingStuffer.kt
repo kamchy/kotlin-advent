@@ -7,9 +7,8 @@ fun main(args: Array<String>) {
     print("found value in range ${intRange}: ${value}")
 }
 
-val has5lz = hasAtLeastLeadingZeros(5)
 fun potentialCoinString(value: Int) = bytesToHex(calcMD5(prefix +value))
-fun isCoin(value: Int): Boolean = has5lz(potentialCoinString(value))
+fun isCoin(value: Int): Boolean = hasAtLeastLeadingZeros(5)(potentialCoinString(value))
 
 
 val prefix = "yzbqklnj"
